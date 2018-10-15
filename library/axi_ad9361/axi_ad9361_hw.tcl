@@ -1,9 +1,13 @@
 
 package require qsys
+package require quartus::device
+
 source ../scripts/adi_env.tcl
 source ../scripts/adi_ip_alt.tcl
 
 ad_ip_create axi_ad9361 {AXI AD9361 Interface} axi_ad9361_elab
+set_module_property VALIDATION_CALLBACK info_param_validate
+
 ad_ip_files axi_ad9361 [list\
   $ad_hdl_dir/library/altera/common/ad_mul.v \
   $ad_hdl_dir/library/altera/common/ad_dcfilter.v \
@@ -53,7 +57,7 @@ ad_ip_files axi_ad9361 [list\
 ad_ip_parameter DEVICE_FAMILY STRING {Arria 10}
 ad_ip_parameter ID INTEGER 0
 ad_ip_parameter MODE_1R1T INTEGER 0
-ad_ip_parameter DEVICE_TYPE INTEGER 0
+ad_ip_parameter FPGA_TECHNOLOGY INTEGER 0
 ad_ip_parameter TDD_DISABLE INTEGER 0
 ad_ip_parameter CMOS_OR_LVDS_N INTEGER 0
 ad_ip_parameter ADC_DATAPATH_DISABLE INTEGER 0
@@ -67,6 +71,8 @@ ad_ip_parameter DAC_DDS_DISABLE INTEGER 0
 ad_ip_parameter DAC_USERPORTS_DISABLE INTEGER 0
 ad_ip_parameter DAC_IQCORRECTION_DISABLE INTEGER 0
 ad_ip_parameter IO_DELAY_GROUP STRING {dev_if_delay_group}
+
+adi_add_auto_fpga_spec_params
 
 # interfaces
 
