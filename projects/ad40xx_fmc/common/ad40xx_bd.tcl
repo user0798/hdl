@@ -17,7 +17,10 @@ current_bd_instance /spi_ad40xx
   create_bd_pin -dir I -type clk spi_clk
   create_bd_pin -dir O irq
   create_bd_intf_pin -mode Master -vlnv analog.com:interface:spi_master_rtl:1.0 m_spi
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 M_AXIS_SAMPLE
+  # Master AXI Stream interface
+  create_bd_pin -dir O m_axis_tvalid
+  create_bd_pin -dir I m_axis_tready
+  create_bd_pin -dir O -from 31 -to 0 m_axis_tdata
 
   ad_ip_instance spi_engine_execution execution
   ad_ip_parameter execution CONFIG.DATA_WIDTH $adc_resolution
@@ -62,12 +65,16 @@ current_bd_instance /spi_ad40xx
 
   if {$adc_resolution != 16} {
     ad_connect offload/offload_sdi axis_upscaler/s_axis
-    ad_connect axis_upscaler/m_axis M_AXIS_SAMPLE
+    ad_connect axis_upscaler/m_axis_valid m_axis_tvalid
+    ad_connect axis_upscaler/m_axis_ready m_axis_tready
+    ad_connect axis_upscaler/m_axis_data m_axis_tdata
 
     ad_connect spi_clk axis_upscaler/clk
     ad_connect axi/spi_resetn axis_upscaler/resetn
   } else {
-    ad_connect offload/offload_sdi M_AXIS_SAMPLE
+    ad_connect offload/offload_sdi_tready m_axis_tready
+    ad_connect offload/offload_sdi_tvalid m_axis_tvalid
+    ad_connect offload/offload_sdi_tdata m_axis_tdata
   }
 
   ad_connect execution/spi m_spi
@@ -123,7 +130,13 @@ ad_connect  sys_cpu_resetn axi_ad40xx_dma/m_dest_axi_aresetn
 ad_connect  spi_clk spi_ad40xx/spi_clk
 
 ad_connect  spi_ad40xx/m_spi ad40xx_spi
-ad_connect  axi_ad40xx_dma/s_axis spi_ad40xx/M_AXIS_SAMPLE
+
+## If offload is active and the DMA can not receive data, samples will be dropped
+## to ensure that every sample is the latest
+## We can achieve this by connecting the SPI Engine's AXI stream ready port to VCC
+ad_connect  axi_ad40xx_dma/s_axis_valid spi_ad40xx/m_axis_tvalid
+ad_connect  axi_ad40xx_dma/s_axis_data spi_ad40xx/m_axis_tdata
+ad_connect  spi_ad40xx/m_axis_tready VCC
 
 ad_cpu_interconnect 0x44a00000 spi_ad40xx/axi
 ad_cpu_interconnect 0x44a30000 axi_ad40xx_dma
