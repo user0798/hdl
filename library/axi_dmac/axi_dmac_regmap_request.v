@@ -187,8 +187,8 @@ always @(*) begin
   9'h112: up_rdata <= up_measured_transfer_length;
   9'h113: up_rdata <= up_tlf_data[MEASURED_LENGTH_WIDTH-1 : 0];   // Length
   9'h114: up_rdata <= up_tlf_data[MEASURED_LENGTH_WIDTH+: 2];  // ID
-  9'h115: up_rdata <= {{(16-MAX_NUM_FRAMES_WIDTH+1){'b0}},request_flock_distance,
-                       {(16-MAX_NUM_FRAMES_WIDTH+1){'b0}},request_flock_framenum};
+  9'h115: up_rdata <= {{(16-MAX_NUM_FRAMES_WIDTH+1){1'b0}},request_flock_distance,
+                       {(16-MAX_NUM_FRAMES_WIDTH+1){1'b0}},request_flock_framenum};
   9'h116: up_rdata <= request_flock_stride;
   default: up_rdata <= 32'h00;
   endcase

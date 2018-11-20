@@ -241,8 +241,8 @@ generate if (ENABLE_FRAME_LOCK == 1) begin
     // Slave mode logic
 
     wire [MAX_NUM_FRAMES_WIDTH-1:0] target_id;
-
-    reg [MAX_NUM_FRAMES_WIDTH*MAX_NUM_FRAMES-1 : 0] s_frame_id_log;
+    wire [MAX_NUM_FRAMES_WIDTH-1:0] m_frame_id;
+    wire m_frame_id_vld;
 
     // The slave will stay behind and try to keep up with the master at a distance.
     // This will be done either by repeating or skipping buffers depending on the
@@ -253,8 +253,6 @@ generate if (ENABLE_FRAME_LOCK == 1) begin
     assign m_frame_id = s_frame_in[MAX_NUM_FRAMES_WIDTH-1:0];
     assign m_frame_id_vld = s_frame_in[MAX_NUM_FRAMES_WIDTH];
 
-    //assign target_id = s_frame_id_log >> (req_flock_distance * MAX_NUM_FRAMES_WIDTH);
-    assign target_id = s_frame_id_log[req_flock_distance * MAX_NUM_FRAMES_WIDTH +: MAX_NUM_FRAMES_WIDTH];
 
     assign calc_done = target_id == transfer_id;
 
@@ -275,10 +273,15 @@ generate if (ENABLE_FRAME_LOCK == 1) begin
 
     // Keep a log of frame ids the master wrote
     //
-    always @(posedge req_aclk) begin
-      if (m_frame_id_vld) begin
-        s_frame_id_log <= {s_frame_id_log, m_frame_id};
+    genvar k;
+    for (k=0;k<MAX_NUM_FRAMES_WIDTH;k=k+1) begin : frame_id_log
+      reg [MAX_NUM_FRAMES-1 : 0] s_frame_id_log;
+      always @(posedge req_aclk) begin
+        if (m_frame_id_vld) begin
+          s_frame_id_log <= {s_frame_id_log[MAX_NUM_FRAMES-2 : 0], m_frame_id[k]};
+        end
       end
+      assign target_id[k] = s_frame_id_log[req_flock_distance];
     end
 
     assign enable_out_req = ~wait_distance;
