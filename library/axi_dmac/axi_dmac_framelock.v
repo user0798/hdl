@@ -124,8 +124,13 @@ generate if (ENABLE_FRAME_LOCK == 1) begin
                                       BYTES_PER_BEAT_WIDTH_DEST;
 
   reg [MAX_NUM_FRAMES_WIDTH-1:0] transfer_id = 'h0;
-  reg [MAX_NUM_FRAMES_WIDTH-1:0] cur_frame_id = 'h0;
+  reg [2*MAX_NUM_FRAMES_WIDTH-1:0] frame_id_history;
+  wire [MAX_NUM_FRAMES_WIDTH-1:0] cur_frame_id;
+  wire [MAX_NUM_FRAMES_WIDTH-1:0] done_frame_id;
+  wire resp_eot;
+
   reg [DMA_AXI_ADDR_WIDTH-1:BYTES_PER_BEAT_WIDTH] req_address = 'h0;
+  reg done_id_sel = 1'b0;
 
   wire [MAX_NUM_FRAMES_WIDTH:0] transfer_id_p1;
 
@@ -155,13 +160,27 @@ generate if (ENABLE_FRAME_LOCK == 1) begin
     end
   end
 
+  // Keep a history of the transfer IDs so they can be passed to the slave
+  // once they are completed
+  assign cur_frame_id = frame_id_history[MAX_NUM_FRAMES_WIDTH-1:0];
+  always @(posedge req_aclk) begin
+    if (out_req_valid & out_req_ready) begin
+      frame_id_history <= {cur_frame_id, transfer_id};
+    end
+  end
+
+  assign done_frame_id = done_id_sel ? cur_frame_id :
+                         frame_id_history[MAX_NUM_FRAMES_WIDTH +: MAX_NUM_FRAMES_WIDTH];
+
+  assign resp_eot = out_response_valid & out_response_ready & out_eot;
+
   always @(posedge req_aclk) begin
     if (req_aresetn == 1'b0) begin
-      cur_frame_id <= 'h0;
+      done_id_sel <= 1'b0;
     end else if (req_valid & req_ready) begin
-      cur_frame_id <= 'h0;
-    end else if (out_req_valid & out_req_ready) begin
-      cur_frame_id <= transfer_id;
+      done_id_sel <= 1'b0;
+    end else if ((out_req_valid & out_req_ready) ^ resp_eot) begin
+      done_id_sel <= ~done_id_sel;
     end
   end
 
@@ -197,7 +216,7 @@ generate if (ENABLE_FRAME_LOCK == 1) begin
     // The master will iterate over the buffers one by one in a cyclic way
     // and by looking at slave current buffer keeping that untouched.
 
-    assign m_frame_out = {frame_id_vld, cur_frame_id};
+    assign m_frame_out = {resp_eot, done_frame_id};
     assign s_frame_id = m_frame_in[MAX_NUM_FRAMES_WIDTH-1:0];
     assign s_frame_id_vld = m_frame_in[MAX_NUM_FRAMES_WIDTH];
 
