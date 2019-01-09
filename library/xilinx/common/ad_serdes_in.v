@@ -79,9 +79,9 @@ module ad_serdes_in #(
   input                           delay_rst,
   output                          delay_locked);
 
-  localparam  SEVEN_SERIES  = 0;
-  localparam  ULTRASCALE  = 1;
-  localparam  ULTRASCALE_PLUS  = 2;
+  localparam  SEVEN_SERIES  = 1;
+  localparam  ULTRASCALE  = 2;
+  localparam  ULTRASCALE_PLUS  = 3;
   localparam  DATA_RATE = (DDR_OR_SDR_N) ? "DDR" : "SDR";
 
   // internal signals

@@ -64,9 +64,9 @@ module ad_serdes_out #(
   output  [(DATA_WIDTH-1):0]  data_out_p,
   output  [(DATA_WIDTH-1):0]  data_out_n);
 
-  localparam  SEVEN_SERIES  = 0;
-  localparam  ULTRASCALE  = 1;
-  localparam  ULTRASCALE_PLUS  = 2;
+  localparam  SEVEN_SERIES  = 1;
+  localparam  ULTRASCALE  = 2;
+  localparam  ULTRASCALE_PLUS  = 3;
   localparam  DR_OQ_DDR = DDR_OR_SDR_N == 1'b1 ? "DDR": "SDR";
 
   // internal signals

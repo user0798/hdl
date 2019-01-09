@@ -65,9 +65,9 @@ module ad_data_out #(
   output              delay_locked);
 
   localparam  NONE = -1;
-  localparam  SEVEN_SERIES = 0;
-  localparam  ULTRASCALE = 1;
-  localparam  ULTRASCALE_PLUS = 2;
+  localparam  SEVEN_SERIES = 1;
+  localparam  ULTRASCALE = 2;
+  localparam  ULTRASCALE_PLUS = 3;
 
   localparam  IODELAY_CTRL_ENABLED = (IODELAY_ENABLE == 1) ? IODELAY_CTRL : 0;
   localparam  IODELAY_CTRL_SIM_DEVICE = (FPGA_TECHNOLOGY == ULTRASCALE_PLUS) ? "ULTRASCALE" :
