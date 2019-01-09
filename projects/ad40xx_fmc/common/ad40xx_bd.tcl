@@ -53,9 +53,9 @@ current_bd_instance /spi_ad40xx
     ad_ip_parameter axis_upscaler CONFIG.NUM_OF_CHANNELS 1
     ad_ip_parameter axis_upscaler CONFIG.DATA_WIDTH $adc_resolution
     ad_ip_parameter axis_upscaler CONFIG.UDATA_WIDTH 32
-    ad_connect axis_upscaler/dfmt_enable GND
+    ad_connect axis_upscaler/dfmt_enable VCC
     ad_connect axis_upscaler/dfmt_type GND
-    ad_connect axis_upscaler/dfmt_se GND
+    ad_connect axis_upscaler/dfmt_se VCC
   }
 
   ad_connect axi/spi_engine_offload_ctrl0 offload/spi_engine_offload_ctrl
